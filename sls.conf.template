@@ -1,0 +1,65 @@
+srt {
+    ########################################################################
+    # GLOBAL SETTINGS
+    ########################################################################
+    worker_threads 1;
+    worker_connections 300;
+
+    http_port 8181;
+    cors_header *;
+
+    log_file /var/log/srt-live-server/srt_server.log;
+    log_level info;
+
+    # Rate limiting for log noise reduction
+    log_rate_limit_enabled 1;
+    log_rate_limit_window 60;
+    log_rate_limit_threshold 5;
+
+    # Summary logging
+    log_summary_enabled 1;
+    log_summary_interval 60;
+
+    # Session tracking
+    log_session_ids 1;
+
+    pidfile /run/srt-live-server/sls_server.pid;
+    stat_post_interval 1;
+
+    ########################################################################
+    # STREAMING SERVER (SRTLA + Direct SRT)
+    ########################################################################
+    server {
+        # Player port - all streams playable here
+        listen_player 4000;
+
+        # Direct SRT publishers (OBS, FFmpeg without SRTLA)
+        listen_publisher 4001;
+
+        # SRTLA publishers (via srtla_rec, bonded cellular)
+        listen_publisher_srtla 4002;
+
+        latency_min 200;
+        latency_max 5000;
+
+        domain_player play;
+        domain_publisher publish;
+        default_sid publish/live/feed1;
+
+        backlog 100;
+        idle_streams_timeout 10;
+
+        #on_event_url http://127.0.0.1:8000/sls/on_event;
+
+        app {
+            app_player live;
+            app_publisher live;
+
+            allow publish all;
+            allow play all;
+
+            record_hls off;
+            record_hls_segment_duration 10;
+        }
+    }
+}

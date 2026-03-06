@@ -1,0 +1,29 @@
+[Unit]
+Description=SRTLA Receiver (srtla_rec)
+Documentation=https://github.com/irlserver/srtla
+After=network-online.target
+Wants=network-online.target
+Before=srt-live-server.service
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/srtla_rec --srtla_port 5000 --srt_hostname 127.0.0.1 --srt_port 4002 --log_level info
+Restart=always
+RestartSec=3
+
+# Hardening
+User=srt
+Group=srt
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+ReadWritePaths=/tmp
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=srtla-rec
+
+[Install]
+WantedBy=multi-user.target

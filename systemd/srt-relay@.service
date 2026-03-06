@@ -1,0 +1,37 @@
+[Unit]
+Description=SRT-to-RTMP Relay (%i)
+Documentation=https://ffmpeg.org/ffmpeg.html
+After=network-online.target srt-live-server.service
+Wants=network-online.target
+Requires=srt-live-server.service
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/srt-live-server/relay-%i.env
+ExecStart=/usr/bin/ffmpeg \
+    -nostdin \
+    -loglevel warning \
+    -analyzeduration 1000000 \
+    -probesize 500000 \
+    -i ${SRT_INPUT} \
+    -c copy \
+    -f flv \
+    "${RTMP_URL}/${STREAM_KEY}"
+Restart=always
+RestartSec=5
+
+# Hardening
+User=srt
+Group=srt
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=srt-relay-%i
+
+[Install]
+WantedBy=multi-user.target

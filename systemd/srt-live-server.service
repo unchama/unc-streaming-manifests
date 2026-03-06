@@ -1,0 +1,29 @@
+[Unit]
+Description=SRT Live Server (irl-srt-server)
+Documentation=https://github.com/irlserver/irl-srt-server
+After=network-online.target srtla-rec.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStartPre=/bin/mkdir -p /run/srt-live-server /var/log/srt-live-server
+ExecStart=/usr/local/bin/srt_server -c /etc/srt-live-server/sls.conf
+Restart=always
+RestartSec=3
+
+# Hardening
+User=srt
+Group=srt
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+ReadWritePaths=/var/log/srt-live-server /run/srt-live-server /tmp
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=srt-live-server
+
+[Install]
+WantedBy=multi-user.target
