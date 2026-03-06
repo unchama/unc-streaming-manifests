@@ -5,7 +5,7 @@ unc-streaming-01 のセットアップ・設定ファイル一式。
 ## 構成
 
 ```
-配信クライアント (BELABOX等)
+配信クライアント (x86 PC / BELABOX)
   |  複数モバイル回線 (SRTLA)
   v
 srtla_rec :5000  (SRTLA受信・集約)
@@ -45,15 +45,17 @@ ffmpeg (srt-relay@) -> RTMP push -> Twitch / YouTube 等
 ```
 .
 ├── README.md                 # このファイル
-├── BUILD_PROCEDURES.md       # 詳細ビルド手順書
+├── [BUILD_PROCEDURES.md](BUILD_PROCEDURES.md)   # 詳細ビルド手順書
 ├── build-all.sh              # 自動ビルドスクリプト (srt + srtla + irl-srt-server)
 ├── setup-services.sh         # systemdサービスインストールスクリプト
 ├── sls.conf.template         # srt_server設定ファイル
 ├── relay.env.template        # ffmpegリレー用環境変数テンプレート
-└── systemd/
-    ├── srtla-rec.service         # srtla_rec systemdユニット
-    ├── srt-live-server.service   # srt_server systemdユニット
-    └── srt-relay@.service        # ffmpegリレー テンプレートユニット
+├── systemd/
+│   ├── srtla-rec.service         # srtla_rec systemdユニット
+│   ├── srt-live-server.service   # srt_server systemdユニット
+│   └── srt-relay@.service        # ffmpegリレー テンプレートユニット
+└── docs/
+    └── [client-setup.md](docs/client-setup.md)   # x86 PC クライアント構築ガイド
 ```
 
 ## セットアップ手順
@@ -91,3 +93,8 @@ sudo systemctl enable --now srt-relay@twitch
 | SRT直接配信 (OBS等) | `srt://unc-streaming-01:4001?streamid=publish/live/feed1` |
 | SRT視聴 | `srt://unc-streaming-01:4000?streamid=play/live/feed1` |
 | Stats API | http://unc-streaming-01:8181/stats |
+
+## ドキュメント
+
+- [BUILD_PROCEDURES.md](BUILD_PROCEDURES.md) — サーバー側の詳細ビルド手順書
+- [docs/client-setup.md](docs/client-setup.md) — x86 PC を SRTLA 配信クライアントとして構築するガイド
