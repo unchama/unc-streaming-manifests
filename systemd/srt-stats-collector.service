@@ -1,0 +1,31 @@
+[Unit]
+Description=SRT Stats Collector (overlay text generator)
+Documentation=https://github.com/irlserver/irl-srt-server
+After=network-online.target srt-live-server.service
+Wants=network-online.target
+Requires=srt-live-server.service
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/srt-stats-collector.sh
+EnvironmentFile=-/etc/srt-live-server/stats-collector.env
+Restart=always
+RestartSec=3
+
+# Hardening
+User=srt
+Group=srt
+SupplementaryGroups=systemd-journal
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=no
+ReadWritePaths=/tmp
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=srt-stats-collector
+
+[Install]
+WantedBy=multi-user.target

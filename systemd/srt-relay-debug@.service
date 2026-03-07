@@ -1,0 +1,43 @@
+[Unit]
+Description=SRT-to-RTMP Debug Relay with Stats Overlay (%i)
+Documentation=https://ffmpeg.org/ffmpeg.html
+After=network-online.target srt-live-server.service srt-stats-collector.service
+Wants=network-online.target srt-stats-collector.service
+Requires=srt-live-server.service
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/srt-live-server/relay-debug-%i.env
+ExecStartPre=/usr/bin/touch /tmp/srt-overlay.txt
+ExecStart=/usr/bin/ffmpeg \
+    -nostdin \
+    -loglevel warning \
+    -fflags +genpts+discardcorrupt \
+    -analyzeduration 10000000 \
+    -probesize 5000000 \
+    -i ${SRT_INPUT} \
+    -vf "fps=${OUTPUT_FPS},drawtext=textfile=${OVERLAY_FILE}:reload=1:fontsize=${OVERLAY_FONTSIZE}:fontcolor=${OVERLAY_FONTCOLOR}:borderw=2:bordercolor=black:x=${OVERLAY_X}:y=${OVERLAY_Y}" \
+    -c:v libx264 -preset ${X264_PRESET} -tune zerolatency -b:v ${VIDEO_BITRATE} -g ${KEYFRAME_INTERVAL} \
+    -max_muxing_queue_size 1024 \
+    -c:a copy \
+    -f ${OUTPUT_FORMAT} \
+    "${OUTPUT_URL}"
+Restart=always
+RestartSec=5
+
+# Hardening
+User=srt
+Group=srt
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=no
+ReadWritePaths=/tmp
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=srt-relay-debug-%i
+
+[Install]
+WantedBy=multi-user.target

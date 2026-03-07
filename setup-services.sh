@@ -35,6 +35,11 @@ fi
 cp "$SCRIPT_DIR/systemd/srtla-rec.service" /etc/systemd/system/srtla-rec.service
 cp "$SCRIPT_DIR/systemd/srt-live-server.service" /etc/systemd/system/srt-live-server.service
 cp "$SCRIPT_DIR/systemd/srt-relay@.service" /etc/systemd/system/srt-relay@.service
+cp "$SCRIPT_DIR/systemd/srt-stats-collector.service" /etc/systemd/system/srt-stats-collector.service
+cp "$SCRIPT_DIR/systemd/srt-relay-debug@.service" /etc/systemd/system/srt-relay-debug@.service
+
+# Install stats collector script
+install -m 0755 "$SCRIPT_DIR/scripts/srt-stats-collector.sh" /usr/local/bin/srt-stats-collector.sh
 
 # Install relay env template (do not overwrite existing platform configs)
 for platform in twitch youtube; do
@@ -45,6 +50,28 @@ for platform in twitch youtube; do
         echo "Installed relay-${platform}.env template (edit with actual stream key)"
     else
         echo "relay-${platform}.env already exists, skipping"
+    fi
+done
+
+# Install stats collector env template
+if [[ ! -f /etc/srt-live-server/stats-collector.env ]]; then
+    cp "$SCRIPT_DIR/stats-collector.env.template" /etc/srt-live-server/stats-collector.env
+    chown root:srt /etc/srt-live-server/stats-collector.env
+    chmod 0640 /etc/srt-live-server/stats-collector.env
+    echo "Installed stats-collector.env template"
+else
+    echo "stats-collector.env already exists, skipping"
+fi
+
+# Install debug relay env template
+for platform in twitch youtube; do
+    if [[ ! -f "/etc/srt-live-server/relay-debug-${platform}.env" ]]; then
+        cp "$SCRIPT_DIR/relay-debug.env.template" "/etc/srt-live-server/relay-debug-${platform}.env"
+        chown root:srt "/etc/srt-live-server/relay-debug-${platform}.env"
+        chmod 0640 "/etc/srt-live-server/relay-debug-${platform}.env"
+        echo "Installed relay-debug-${platform}.env template (edit with actual stream key)"
+    else
+        echo "relay-debug-${platform}.env already exists, skipping"
     fi
 done
 
@@ -64,6 +91,11 @@ echo "SRT-to-RTMP relay (per platform):"
 echo "  1. Edit stream key: sudo nano /etc/srt-live-server/relay-twitch.env"
 echo "  2. Enable & start:  sudo systemctl enable --now srt-relay@twitch"
 echo "  3. Check status:    sudo systemctl status srt-relay@twitch"
+echo ""
+echo "Debug relay with stats overlay:"
+echo "  1. Edit stream key: sudo nano /etc/srt-live-server/relay-debug-twitch.env"
+echo "  2. Enable & start:  sudo systemctl enable --now srt-relay-debug@twitch"
+echo "  3. Stats collector starts automatically via Wants= dependency"
 echo ""
 echo "Check status:"
 echo "  sudo systemctl status srtla-rec"
