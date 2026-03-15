@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # srt-relay-watchdog.sh
-# srt-relay@* の RTMP 出力が停滞していたら再起動する
+# srt-relay@* の出力が停滞していたら再起動する
+# 注意: srt-relay-debug@* は対象外 (SRT listener 出力はクライアント未接続時に
+#        write_bytes=0 が正常であり、停滞と誤判定してしまうため)
 #
 # 判定ロジック:
 #   1. publisher が存在しなければ何もしない (入力がないので再起動しても無意味)
@@ -34,7 +36,7 @@ fi
 
 # 各 relay インスタンスをチェック
 restarted=0
-for unit in $(systemctl list-units --type=service --state=running --plain --no-legend 'srt-relay@*' 'srt-relay-debug@*' | awk '{print $1}'); do
+for unit in $(systemctl list-units --type=service --state=running --plain --no-legend 'srt-relay@*' | awk '{print $1}'); do
     pid=$(systemctl show -p MainPID --value "$unit")
     if [[ -z "$pid" || "$pid" == "0" ]]; then
         continue
