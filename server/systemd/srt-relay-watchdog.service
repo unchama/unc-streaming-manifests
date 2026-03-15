@@ -1,0 +1,12 @@
+[Unit]
+Description=SRT Relay Watchdog
+After=srt-live-server.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/srt-relay-watchdog.sh
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=srt-relay-watchdog

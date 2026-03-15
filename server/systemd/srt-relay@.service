@@ -14,7 +14,9 @@ ExecStart=/usr/bin/ffmpeg \
     -analyzeduration 1000000 \
     -probesize 500000 \
     -i ${SRT_INPUT} \
-    -c copy \
+    -c:v copy \
+    -af aresample=async=1:first_pts=0 \
+    -c:a aac -b:a 128k \
     -f flv \
     "${RTMP_URL}/${STREAM_KEY}"
 Restart=always

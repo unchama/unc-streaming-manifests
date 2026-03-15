@@ -1,0 +1,22 @@
+[Unit]
+Description=GoPro Webcam to SRT Capture
+After=srtla-send.service
+Requires=srtla-send.service
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/srtla-send/srt-capture-gopro.env
+ExecStartPre=/usr/bin/wget -qO /dev/null http://172.23.114.51:8080/gopro/webcam/start
+ExecStart=/usr/bin/ffmpeg -nostdin \
+    -loglevel warning \
+    -f mpegts \
+    -i ${GOPRO_INPUT} \
+    -c:v copy \
+    -c:a aac -b:a 128k \
+    -f mpegts \
+    ${SRT_OUTPUT}
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

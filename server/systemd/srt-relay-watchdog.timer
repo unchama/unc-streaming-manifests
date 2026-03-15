@@ -1,0 +1,9 @@
+[Unit]
+Description=Run SRT Relay Watchdog every 60s
+
+[Timer]
+OnBootSec=30
+OnUnitActiveSec=60
+
+[Install]
+WantedBy=timers.target

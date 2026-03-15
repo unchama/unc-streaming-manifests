@@ -1,0 +1,1 @@
+SUBSYSTEM=="video4linux", ATTR{name}=="Cam Link 4K: Cam Link 4K", ATTR{index}=="0", SYMLINK+="camlink"

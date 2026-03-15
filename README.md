@@ -1,212 +1,59 @@
 # unc-streaming-manifests
 
-unc-streaming-01 のセットアップ・設定ファイル一式。
+IRL 配信インフラのセットアップ・設定ファイル一式。
+サーバー (unc-streaming-01) とクライアント (配信PC) の構成を管理する。
 
-## 構成
+## 全体構成
 
 ```
 配信クライアント (x86 PC / BELABOX)
   |  複数モバイル回線 (SRTLA)
   v
-srtla_rec :5000  (SRTLA受信・集約)
-  |
-  v
-srt_server :4002 (listen_publisher_srtla)
-  |
-  +---> :4000 (listen_player / SRT視聴)
-  +---> :4001 (listen_publisher / 直接SRT)
-  +---> :8181 (HTTP Stats API)
-  |
-  v
-ffmpeg (srt-relay@) -> RTMP push -> Twitch / YouTube 等
+unc-streaming-01
+  srtla_rec :5000  (SRTLA受信・集約)
+    → srt_server :4002 (SRT配信サーバー)
+      → :4000 (SRT視聴)
+      → :8181 (Stats API)
+      → ffmpeg (srt-relay@) → RTMP push → Twitch / YouTube 等
 ```
 
-## サーバー情報
-
-| 項目 | 値 |
-|------|------|
-| ホスト名 | unc-streaming-01 |
-| IP | 192.168.3.26/22 (VLAN100) |
-| Proxmoxホスト | unchama-sv-prox08 (VMID 202) |
-| OS | Ubuntu 24.04 LTS |
-| CPU / メモリ / ディスク | 8コア / 8GB / 50GB |
-
-## 使用ソフトウェア
-
-| ソフトウェア | バージョン | リポジトリ |
-|---|---|---|
-| libsrt (BELABOX fork) | v1.5.4 | [irlserver/srt](https://github.com/irlserver/srt) (belabox branch) |
-| srtla | v1.0.0 | [irlserver/srtla](https://github.com/irlserver/srtla) |
-| irl-srt-server | v3.1.0 | [irlserver/irl-srt-server](https://github.com/irlserver/irl-srt-server) |
-| ffmpeg | 6.1.1 | apt (ubuntu 24.04) |
-
-## ファイル構成
+## ディレクトリ構成
 
 ```
 .
-├── README.md                 # このファイル
-├── [BUILD_PROCEDURES.md](BUILD_PROCEDURES.md)   # 詳細ビルド手順書
-├── build-all.sh              # 自動ビルドスクリプト (srt + srtla + irl-srt-server)
-├── setup-services.sh         # systemdサービスインストールスクリプト
-├── sls.conf.template         # srt_server設定ファイル
-├── relay.env.template        # ffmpegリレー用環境変数テンプレート
-├── relay-debug.env.template  # デバッグリレー用環境変数テンプレート
-├── stats-collector.env.template  # Stats Collector用環境変数テンプレート
-├── scripts/
-│   └── srt-stats-collector.sh    # SRT統計オーバーレイテキスト生成スクリプト
-├── systemd/
-│   ├── srtla-rec.service         # srtla_rec systemdユニット
-│   ├── srt-live-server.service   # srt_server systemdユニット
-│   ├── srt-relay@.service        # ffmpegリレー テンプレートユニット
-│   ├── srt-stats-collector.service   # Stats Collector systemdユニット
-│   └── srt-relay-debug@.service  # デバッグリレー テンプレートユニット
-└── docs/
-    └── [client-setup.md](docs/client-setup.md)   # x86 PC クライアント構築ガイド
+├── server/    # サーバー側 (unc-streaming-01) のセットアップ
+│   ├── README.md
+│   ├── BUILD_PROCEDURES.md
+│   ├── build-all.sh
+│   ├── setup-services.sh
+│   ├── *.template (設定テンプレート)
+│   ├── scripts/ (運用スクリプト)
+│   └── systemd/ (systemd ユニットファイル)
+│
+└── client/    # クライアント側 (配信PC) のセットアップ
+    ├── README.md
+    ├── BUILD_PROCEDURES.md
+    ├── setup-source-routing.sh
+    ├── *.template (設定テンプレート)
+    ├── systemd/ (systemd ユニットファイル)
+    └── docs/ (詳細ドキュメント)
 ```
 
-## セットアップ手順
+## 注意事項
 
-### 1. ビルド
-```bash
-sudo ./build-all.sh
-```
+このリポジトリはパブリックです。以下の情報は絶対にコミットしないでください:
 
-### 2. サービスインストール
-```bash
-sudo ./setup-services.sh
-```
+- グローバル IP アドレス
+- API キー・ストリームキー・パスワード等の認証情報
+- SSH 秘密鍵・証明書
+- その他、外部から特定可能な機密情報
 
-### 3. サービス起動
-```bash
-sudo systemctl start srtla-rec
-sudo systemctl start srt-live-server
-```
+設定テンプレート (`*.template`) にはプレースホルダーを使用し、実際の値は各サーバー上の環境変数ファイルに記載してください。
 
-### 4. リレー設定 (配信プラットフォームへの転送)
-```bash
-# ストリームキー設定
-sudo nano /etc/srt-live-server/relay-twitch.env
+## セットアップガイド
 
-# 有効化・起動
-sudo systemctl enable --now srt-relay@twitch
-```
-
-## デバッグオーバーレイ (SRT/SRTLA 統計表示)
-
-配信映像にSRT通信統計とSRTLAリンク別ステータスをオーバーレイ表示するデバッグ用リレー。
-本番配信 (`srt-relay@`) には一切影響しない独立したストリーム。
-
-### 仕組み
-
-```
-srt_server :8181 (Stats API)  +  srtla_rec ログ (journalctl)
-  |                                  |
-  |  1秒間隔ポーリング                |  最新のリンク情報をパース
-  v                                  v
-srt-stats-collector ──────> /tmp/srt-overlay.txt
-                                |  drawtext reload=1
-                                v
-srt-relay-debug@ (ffmpeg: SRT入力 → x264再エンコード+オーバーレイ → SRT/RTMP出力)
-                                |
-                                v
-                          :4003 (SRT視聴)
-```
-
-### 表示内容
-
-```
-Bitrate: 5103 kbps | RTT: 38 ms | Loss: 46790 | Drop: 6 | BW: 1.1 Mbps
-Link1 :42259 Weight:100 Err:0 | Link2 :34128 Weight:85 Err:5
-```
-
-| 1行目 (SRT統計) | 説明 |
-|---|---|
-| Bitrate | 受信ビットレート (kbps) |
-| RTT | ラウンドトリップタイム (ms) |
-| Loss | 累積パケットロス数 |
-| Drop | 累積パケットドロップ数 |
-| BW | 推定帯域幅 (Mbps) |
-
-| 2行目 (SRTLAリンク別) | 説明 |
-|---|---|
-| Link N :PORT | リンク識別子 (送信元ポート番号) |
-| Weight | パケット振り分け比率 (100=全力, 10=ほぼ未使用) |
-| Err | エラーポイント (0=正常, 高い=回線不調) |
-
-### セットアップ
-
-`setup-services.sh` で自動インストールされる。手動の場合:
-
-```bash
-# スクリプトインストール
-sudo install -m 0755 scripts/srt-stats-collector.sh /usr/local/bin/srt-stats-collector.sh
-
-# systemdユニットインストール
-sudo cp systemd/srt-stats-collector.service /etc/systemd/system/
-sudo cp systemd/srt-relay-debug@.service /etc/systemd/system/
-sudo systemctl daemon-reload
-
-# Stats API認証設定 (sls.conf に api_keys が設定されている場合)
-echo 'SRT_API_KEY=your-api-key' | sudo tee /etc/srt-live-server/stats-collector.env
-sudo chown root:srt /etc/srt-live-server/stats-collector.env
-sudo chmod 0640 /etc/srt-live-server/stats-collector.env
-
-# デバッグリレー設定 (デフォルトはSRT出力 port 4003)
-sudo cp relay-debug.env.template /etc/srt-live-server/relay-debug-srt.env
-sudo chown root:srt /etc/srt-live-server/relay-debug-srt.env
-sudo chmod 0640 /etc/srt-live-server/relay-debug-srt.env
-```
-
-### 起動・停止
-
-```bash
-# 起動 (stats-collector は Wants= 依存で自動起動)
-sudo systemctl start srt-relay-debug@srt
-
-# 停止
-sudo systemctl stop srt-relay-debug@srt
-
-# stats-collector だけ起動 (オーバーレイファイルの生成確認用)
-sudo systemctl start srt-stats-collector
-cat /tmp/srt-overlay.txt
-```
-
-### 視聴
-
-```
-srt://unc-streaming-01.seichi.internal:4003
-```
-
-streamid やパラメータは不要。SRTプレイヤー (mpv, ffplay, VLC 等) で直接接続する。
-
-### 設定変更
-
-`/etc/srt-live-server/relay-debug-srt.env` を編集して `systemctl restart srt-relay-debug@srt` で反映。
-
-| 変数 | デフォルト | 説明 |
-|---|---|---|
-| `SRT_INPUT` | `srt://127.0.0.1:4000?...` | SRT入力URL |
-| `OUTPUT_URL` | `srt://0.0.0.0:4003?mode=listener&latency=300000` | 出力先URL (SRT/RTMP) |
-| `OUTPUT_FORMAT` | `mpegts` | 出力フォーマット (`mpegts` or `flv`) |
-| `X264_PRESET` | `ultrafast` | x264プリセット |
-| `VIDEO_BITRATE` | `3000k` | 出力ビットレート |
-| `OUTPUT_FPS` | `30` | 出力フレームレート |
-| `OVERLAY_FONTSIZE` | `20` | フォントサイズ |
-| `OVERLAY_FONTCOLOR` | `white` | フォント色 |
-| `OVERLAY_X` / `OVERLAY_Y` | `10` / `10` | オーバーレイ位置 (px) |
-
-### ログ確認
-
-```bash
-journalctl -u srt-stats-collector -f    # Stats Collector
-journalctl -u srt-relay-debug@srt -f    # デバッグリレー (ffmpeg)
-```
-
-### 注意事項
-
-- x264 再エンコードを行うため **CPU 負荷が発生する** (ultrafast + 30fps で8コア中1-2コア程度)
-- 入力ストリームのパケットロスが激しい場合、**キーフレーム受信までエンコードが開始されない** (数十秒かかることがある)
-- RTMP出力に変更する場合は env ファイルの `OUTPUT_URL` / `OUTPUT_FORMAT` をコメントアウトを切り替える
+- **サーバー (unc-streaming-01)**: [server/README.md](server/README.md)
+- **クライアント (配信PC)**: [client/README.md](client/README.md)
 
 ## 接続URL
 
@@ -217,8 +64,3 @@ journalctl -u srt-relay-debug@srt -f    # デバッグリレー (ffmpeg)
 | SRT視聴 | `srt://unc-streaming-01.seichi.internal:4000?streamid=play/live/feed1` |
 | デバッグ視聴 (統計オーバーレイ付き) | `srt://unc-streaming-01.seichi.internal:4003` |
 | Stats API | http://unc-streaming-01:8181/stats |
-
-## ドキュメント
-
-- [BUILD_PROCEDURES.md](BUILD_PROCEDURES.md) — サーバー側の詳細ビルド手順書
-- [docs/client-setup.md](docs/client-setup.md) — x86 PC を SRTLA 配信クライアントとして構築するガイド

@@ -1,0 +1,16 @@
+[Unit]
+Description=SRTLA Sender
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/srtla-send/srtla-send.env
+ExecStartPre=/usr/local/bin/setup-source-routing.sh
+ExecStart=/usr/local/bin/srtla_send ${SRT_PORT} ${SRTLA_ADDR} ${SRTLA_PORT} ${IPS_FILE}
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

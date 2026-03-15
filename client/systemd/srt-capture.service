@@ -1,0 +1,32 @@
+[Unit]
+Description=FFmpeg V4L2 to SRT Capture (VAAPI H.264 + Audio)
+After=srtla-send.service
+Requires=srtla-send.service
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/srtla-send/srt-capture.env
+ExecStart=/usr/bin/ffmpeg -nostdin \
+    -vaapi_device ${VAAPI_DEVICE} \
+    -f v4l2 \
+    -input_format ${INPUT_FORMAT} \
+    -video_size ${INPUT_RESOLUTION} \
+    -framerate ${INPUT_FPS} \
+    -i ${CAPTURE_DEVICE} \
+    -f alsa \
+    -i ${AUDIO_DEVICE} \
+    -vf 'format=nv12,hwupload' \
+    -c:v h264_vaapi \
+    -b:v ${BITRATE} \
+    -g ${KEYFRAME_INTERVAL} \
+    -keyint_min ${KEYFRAME_INTERVAL} \
+    -profile:v ${H264_PROFILE} \
+    -c:a aac \
+    -b:a ${AUDIO_BITRATE} \
+    -f mpegts \
+    ${SRT_OUTPUT}
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

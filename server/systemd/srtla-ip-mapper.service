@@ -1,0 +1,7 @@
+[Unit]
+Description=SRTLA IP Mapper (port to source IP resolution)
+After=srtla-rec.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/srtla-ip-mapper.sh

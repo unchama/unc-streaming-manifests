@@ -1,12 +1,12 @@
 [Unit]
 Description=SRT Live Server (irl-srt-server)
 Documentation=https://github.com/irlserver/irl-srt-server
-After=network-online.target srtla-rec.service
+After=network-online.target
 Wants=network-online.target
 
 [Service]
 Type=simple
-ExecStartPre=/bin/mkdir -p /run/srt-live-server /var/log/srt-live-server
+ExecStartPre=/bin/mkdir -p /var/log/srt-live-server
 ExecStart=/usr/local/bin/srt_server -c /etc/srt-live-server/sls.conf
 Restart=always
 RestartSec=3
@@ -18,7 +18,8 @@ NoNewPrivileges=yes
 ProtectSystem=strict
 ProtectHome=yes
 PrivateTmp=yes
-ReadWritePaths=/var/log/srt-live-server /run/srt-live-server /tmp
+RuntimeDirectory=srt-live-server
+ReadWritePaths=/var/log/srt-live-server /tmp
 
 # Logging
 StandardOutput=journal
