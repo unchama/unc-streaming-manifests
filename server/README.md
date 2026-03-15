@@ -282,8 +282,8 @@ cat /tmp/srtla-ip-map
 
 | 用途 | URL |
 |------|------|
-| SRTLA配信 (BELABOX) | srtla://unc-streaming-01:5000 |
+| SRTLA配信 (BELABOX) | srtla://unc-streaming-01.seichi.internal:5000 |
 | SRT直接配信 (OBS等) | `srt://unc-streaming-01.seichi.internal:4001?streamid=publish/live/feed1` |
 | SRT視聴 | `srt://unc-streaming-01.seichi.internal:4000?streamid=play/live/feed1` |
 | デバッグ視聴 (統計オーバーレイ付き) | `srt://unc-streaming-01.seichi.internal:4003` |
-| Stats API | http://unc-streaming-01:8181/stats |
+| Stats API | <http://unc-streaming-01.seichi.internal:8181/stats> |
