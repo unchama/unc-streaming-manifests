@@ -136,6 +136,13 @@ for dev in $(ip -o link show | grep -oP '(enx[0-9a-f]+|usb\d+)(?=:)' | sort); do
     fi
 done
 
+# ips_file が空の場合はエラー終了（srtla_send の無限再起動ループを防止）
+if [ ! -s "$IPS_FILE" ]; then
+    echo "ERROR: No active network interfaces found. IPS_FILE is empty: $IPS_FILE" >&2
+    echo "Ensure at least one network interface (WiFi, Ethernet, or tethering) is connected." >&2
+    exit 1
+fi
+
 killall -HUP srtla_send 2>/dev/null || true
 echo "Source routing configured. IPs in $IPS_FILE:"
 cat "$IPS_FILE"

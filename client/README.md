@@ -201,3 +201,4 @@ unc-streaming-01 がルーター配下にある場合、srtla_rec への UDP パ
 
 - [Stats API (ストリーム状態確認)](docs/stats-api.md)
 - [トラブルシューティング](docs/troubleshooting.md)
+- [外配信チェックリスト](docs/irl-streaming-checklist.md)

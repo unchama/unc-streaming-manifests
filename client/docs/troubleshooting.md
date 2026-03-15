@@ -73,3 +73,36 @@ v4l2-ctl -d /dev/camlink --list-formats-ext
 # カーネルログ確認
 dmesg | grep -i cam
 ```
+
+## srtla-send が再起動ループする
+
+**症状**: journalctl に「restart counter」が高速に増加、srtla_send が数秒で終了を繰り返す
+
+**原因**: ネットワーク未接続時に ips_file が空になる
+
+**対処**:
+
+1. `cat /etc/srtla-send/srtla_ips` でファイル内容確認
+2. 空の場合、WiFi / 有線 / テザリングのいずれかを接続
+3. `ip -4 addr show` で IP アドレスが割り当てられていることを確認
+4. `sudo systemctl restart srtla-send` で再起動
+
+**注意**: 短時間に5回以上再起動が失敗すると、systemd の StartLimit によりサービスが `failed (start-limit-hit)` 状態でロックされる。この場合は以下で復旧する:
+
+```bash
+sudo systemctl reset-failed srtla-send
+sudo systemctl start srtla-send
+```
+
+## V4L2 キャプチャデバイスが途中で喪失する
+
+**症状**: `ioctl(VIDIOC_DQBUF): No such device` や `ALSA read error: No such device`
+
+**原因**: USB キャプチャデバイス（Cam Link 4K 等）の物理的な接続断
+
+**対処**:
+
+1. USB ケーブルの接続を確認、別ポートに差し替え
+2. `ls /dev/video*` でデバイスが復活しているか確認
+3. `sudo systemctl restart srt-capture` で再起動
+4. 頻発する場合は USB ハブの電力不足やケーブル劣化を疑う

@@ -61,6 +61,14 @@ USBテザリングデバイスは unmanaged にするか、nmcli で個別設定
 sudo nmcli device set usb0 managed no
 ```
 
+## WiFi 単一回線運用時の注意
+
+- ボンディングなしの単一回線運用は冗長性がないため、回線切断 = 配信停止
+- 屋外配信ではテザリングに WiFi テザリングではなく **USB テザリング** を使用すること（WiFi テザリングは周囲の WiFi 環境に品質が左右される）
+- 複数スマートフォンの USB テザリングで SRTLA ボンディングを構成するのが最も安定
+- 可能であればモバイルテザリング（USB / WiFi）を追加して最低 2 回線のボンディングを推奨
+- `srtla_ips` に 1 つしか IP がない場合、SRTLA のボンディング効果は得られない
+
 ## srtla_send の使い方
 
 ```bash
@@ -91,6 +99,8 @@ srtla_send [--help] [--version] [--verbose] <listen_port> <srtla_host> <srtla_po
 ```
 
 srtla_send は SIGHUP を受け取ると ips_file を再読み込みし、回線構成を動的に変更できる。
+
+> **ips_file が空の場合**: `setup-source-routing.sh` が実行されても有効な NIC がなければ ips_file は空になる。空の場合は srtla-send の起動が失敗する（意図的な動作）。対処: NIC の接続を確認してから `sudo systemctl restart srtla-send` で再起動する。
 
 ### 実行例
 
