@@ -95,7 +95,19 @@ sudo systemctl start srtla-rec
 
 > **起動順序**: `srtla-rec` は `Requires=srt-live-server.service` + `After=srt-live-server.service` を設定しているため、`systemctl start srtla-rec` だけでも srt-live-server が自動的に先に起動する。
 
-### 4. リレー設定 (配信プラットフォームへの転送)
+### 4. Netdata (リアルタイムモニタリング)
+
+CPU 使用率やネットワーク帯域をリアルタイムで監視するために Netdata をインストールする。
+
+```bash
+wget -qO- https://get.netdata.cloud/kickstart.sh | sudo bash -s -- --dont-wait --stable-channel
+```
+
+インストール後、`http://unc-streaming-01.seichi.internal:19999` でダッシュボードにアクセスできる。
+
+> **注意**: Ubuntu のデフォルトリポジトリに含まれる netdata (v1.43 等) は古く、ネットワークインターフェースのメトリクスが取得できない場合がある。必ず公式のインストールスクリプトで最新版を導入すること。
+
+### 5. リレー設定 (配信プラットフォームへの転送)
 
 ```bash
 # ストリームキー設定

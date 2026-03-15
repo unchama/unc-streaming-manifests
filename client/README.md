@@ -44,6 +44,8 @@ client/
     srtla-send.service             ← srtla_send systemd ユニット
     srt-capture.service            ← FFmpeg キャプチャ systemd ユニット
     srt-capture-gopro.service      ← GoPro キャプチャ systemd ユニット
+  NetworkManager/
+    90-srtla-routing.sh            ← NIC 増減時のソースルーティング自動再設定
   docs/
     network-setup.md               ← ネットワーク設定 (ソースルーティング)
     capture-setup.md               ← 映像キャプチャ・エンコード設定
@@ -151,6 +153,17 @@ sudo systemctl enable srt-capture-gopro    # GoPro 使用時
 ### 7. スリープ無効化
 
 [docs/sleep-disable.md](docs/sleep-disable.md) を参照。
+
+### 8. Netdata (リアルタイムモニタリング)
+
+CPU 使用率やネットワーク帯域をリアルタイムで監視するために Netdata をインストールする。
+
+```bash
+wget -qO- https://get.netdata.cloud/kickstart.sh | sudo bash -s -- --dont-wait --stable-channel
+```
+
+インストール後、`http://<ホスト名>:19999` でダッシュボードにアクセスできる。
+ネットワークインターフェースの増減は自動検出される。
 
 ## 動作確認チェックリスト
 
