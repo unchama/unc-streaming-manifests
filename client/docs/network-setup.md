@@ -61,6 +61,26 @@ USBテザリングデバイスは unmanaged にするか、nmcli で個別設定
 sudo nmcli device set usb0 managed no
 ```
 
+## 回線の自動検出 (NetworkManager dispatcher)
+
+USB テザリングの抜き差しや Wi-Fi の接続・切断を検知して、ソースルーティングと srtla_send の回線構成を自動的に再設定する。
+
+dispatcher スクリプトは [`../NetworkManager/90-srtla-routing.sh`](../NetworkManager/90-srtla-routing.sh) にある。
+
+### セットアップ
+
+```bash
+sudo install -m 0755 ../NetworkManager/90-srtla-routing.sh /etc/NetworkManager/dispatcher.d/90-srtla-routing.sh
+```
+
+### 動作確認
+
+USB テザリングを抜き差しして、syslog にルーティング再設定のログが出ることを確認する:
+
+```bash
+journalctl -t srtla-routing -f
+```
+
 ## WiFi 単一回線運用時の注意
 
 - ボンディングなしの単一回線運用は冗長性がないため、回線切断 = 配信停止
