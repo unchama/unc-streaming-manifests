@@ -101,9 +101,9 @@ get_srtla_links() {
             fi
             ip_info=$(get_ip_info "$port")
             if [[ -n "$ip_info" ]]; then
-                link_text="${link_text}Link${idx} ${ip_info} W:${weight} Err:${errpts}"
+                link_text="${link_text}Link${idx} ${ip_info} Weight:${weight}% ErrPts:${errpts}"
             else
-                link_text="${link_text}Link${idx} :${port} W:${weight} Err:${errpts}"
+                link_text="${link_text}Link${idx} :${port} Weight:${weight}% ErrPts:${errpts}"
             fi
         fi
     done <<< "$(echo "$lines" | grep "$last_ts")"
@@ -129,7 +129,7 @@ while true; do
             "No Stream"
         else
             .value |
-            "Bitrate: \(.bitrate // 0) kbps | RTT: \((.rtt // 0) * 10 | round / 10) ms | Loss: \(.pktRcvLoss // 0) | Drop: \(.pktRcvDrop // 0) | BW: \((.mbpsBandwidth // 0) * 10 | round / 10) Mbps"
+            "Bitrate: \(.bitrate // 0) kbps | Round Trip: \((.rtt // 0) * 10 | round / 10) ms | Pkt Loss: \(.pktRcvLoss // 0) | Pkt Drop: \(.pktRcvDrop // 0) | Est Avail BW: \((.mbpsBandwidth // 0) * 10 | round / 10) Mbps"
         end
     ' 2>/dev/null) || srt_line="Stats parse error"
 
