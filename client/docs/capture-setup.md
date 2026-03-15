@@ -45,7 +45,7 @@ ffmpeg -nostdin \
     -c:v h264_vaapi -b:v 4500k \
     -g 120 -keyint_min 120 -profile:v 100 \
     -c:a aac -b:a 128k \
-    -f mpegts "srt://localhost:9000?mode=caller&latency=200000&streamid=publish/live/feed1"
+    -f mpegts "srt://localhost:9000?mode=caller&latency=1000000&streamid=publish/live/feed1"
 ```
 
 > Cam Link 4K は映像 (`/dev/camlink`, V4L2) と音声 (`hw:1,0`, ALSA) が別デバイスとして認識される。`arecord -l` でオーディオデバイス番号を確認すること。
@@ -152,7 +152,7 @@ sudo systemctl enable srt-capture-gopro
 ### 配信設定
 
 - サービス: カスタム
-- サーバー: `srt://localhost:9000?mode=caller&latency=200000&streamid=publish/live/feed1`
+- サーバー: `srt://localhost:9000?mode=caller&latency=1000000&streamid=publish/live/feed1`
 - ストリームキー: (空欄、streamid を URL に含めない場合は `#!::r=publish/live/feed1,m=publish` を設定)
 
 ### 映像設定

@@ -252,7 +252,7 @@ streamid やパラメータは不要。SRTプレイヤー (mpv, ffplay, VLC 等)
 | 変数 | デフォルト | 説明 |
 |---|---|---|
 | `SRT_INPUT` | `srt://127.0.0.1:4000?...` | SRT入力URL |
-| `OUTPUT_URL` | `srt://0.0.0.0:4003?mode=listener&latency=300000` | 出力先URL (SRT/RTMP) |
+| `OUTPUT_URL` | `srt://0.0.0.0:4003?mode=listener&latency=1000` | 出力先URL (SRT/RTMP) |
 | `OUTPUT_FORMAT` | `mpegts` | 出力フォーマット (`mpegts` or `flv`) |
 | `X264_PRESET` | `ultrafast` | x264プリセット |
 | `VIDEO_BITRATE` | `3000k` | 出力ビットレート |
